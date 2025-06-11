@@ -45,10 +45,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         token = jwt.encode({
             'id': self.pk,
-            'exp': int(dt.strftime('%s'))
+            'exp': int(dt.timestamp())
         }, settings.SECRET_KEY, algorithm='HS256')
 
-        return token.encode('utf-8')
+        return token
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
