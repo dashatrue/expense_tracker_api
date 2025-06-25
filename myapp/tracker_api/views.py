@@ -11,9 +11,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 def is_admin(user):
     return user.is_superuser
 
-
 admin_required = user_passes_test(lambda user: user.is_superuser)
-
 
 def signup_view(request):
     if request.method == 'POST':
@@ -25,7 +23,6 @@ def signup_view(request):
     else:
         form = SignUpForm()
     return render(request, 'todolist/signup.html', {'form': form})
-
 
 def login_view(request):
     form = LoginForm(data=request.POST or None)
@@ -39,6 +36,11 @@ def login_view(request):
                 return redirect('home')
 
     return render(request, 'tracker_api/login.html', {'form': form})
+
+@login_required
+def expenses_list(request):
+    expenses = request.user.expenses.all()
+    return render(request, 'tracker_api/expenses_list.html', {'expenses':expenses})
 
 @login_required
 @admin_required
@@ -63,3 +65,26 @@ def new_expense(request):
         categories = Category.objects.all()
         users = CustomUser.objects.all()
         return render(request, 'tracker_api/create_expense.html', {'categories': categories, 'users': users})
+
+@login_required
+@admin_required
+def delete_expense(request, expense_id):
+    if request.method == 'POST':
+        expense = Expense.objects.get(id=expense_id)
+        expense.delete()
+    return redirect(reverse('home'))
+
+@login_required
+@admin_required
+def update_expense(request, expense_id):
+    expense = Expense.objects.get(id=expense_id)
+    if request.method == 'POST':
+        expense.name = request.POST.get('name')
+        expense.category = request.POST.get('category')
+        expense.assigned_to = request.POST.get('assigned_to')
+        expense.past_date = request.POST.get('past_date')
+        expense.description = request.POST.get('description')
+        expense.save()
+        return redirect('home')
+    else:
+        return render(request, 'tracker_api/update_expense.html', {'expense':expense})
