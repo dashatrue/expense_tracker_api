@@ -19,7 +19,7 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('category_list')
+            return redirect('home')
     else:
         form = SignUpForm()
     return render(request, 'todolist/signup.html', {'form': form})
@@ -88,3 +88,18 @@ def update_expense(request, expense_id):
         return redirect('home')
     else:
         return render(request, 'tracker_api/update_expense.html', {'expense':expense})
+
+@login_required
+def category_list(request):
+    categories = Category.objects.all()
+    return render(request, 'tracker_api/category_list.html', {'categories':categories})
+
+@login_required
+@admin_required
+def create_category(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        Category.objects.create(name=name)
+        return redirect('home')
+    return render(request, 'tracker_api/create_category.html')
+
